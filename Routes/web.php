@@ -11,6 +11,15 @@
 |
 */
 
-Route::prefix('admin')->group(function() {
-    Route::get('siswa', 'SiswaController@index');
+
+Route::group(['middleware' => ['auth']], function () {
+    Route::prefix('admin')->group(function () {
+        Route::resource('siswa', 'SiswaController');
+    });
 });
+
+// Route::group(['middleware' => ['auth']], function () {
+//     Route::prefix('admin')->group(function () {
+//         Route::resource('product', 'ProductController');
+//     });
+// });

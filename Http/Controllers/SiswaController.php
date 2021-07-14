@@ -6,17 +6,27 @@ use App\Models\User;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Hash;
+use RealRashid\SweetAlert\Facades\Alert;
+use Spatie\Permission\Models\Role;
 
 class SiswaController extends Controller
 {
+    function __construct()
+    {
+        $this->middleware('permission:siswa-show', ['only' => ['index', 'show']]);
+        $this->middleware('permission:siswa-manage||siswa-show', ['only' => ['create', 'store', 'edit', 'update', 'destroy']]);
+    }
     /**
      * Display a listing of the resource.
      * @return Renderable
      */
     public function index()
     {
-        $data = User::role('Siswa')->get();
-        return view('siswa::siswa.index',compact('data'))->with('i', 0);
+        $data = User::role('Siswa')->latest()->get();
+        return view('siswa::admin.siswa.index', compact('data'))->with('i', 0);
     }
 
     /**
@@ -25,7 +35,8 @@ class SiswaController extends Controller
      */
     public function create()
     {
-        return view('siswa::create');
+        $roles = Role::pluck('name', 'name')->all();
+        return view('siswa::admin.siswa.create', compact('roles'));
     }
 
     /**
@@ -35,7 +46,31 @@ class SiswaController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required',
+            'telp' => 'required|numeric',
+            'username' => 'required|unique:users,username',
+            'email' => 'required|email|unique:users,email',
+            'password' => 'required|same:confirm-password',
+            // 'roles' => 'required',
+            // 'foto' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+        ]);
+
+        // if (!empty($request->foto)) {
+        //     $imageName = $request->name. '-' . $request->foto->getClientOriginalName();
+        //     $request->foto->move(public_path('storage/profile-image'), $imageName);
+        // }
+        // $input['foto'] = $imageName;
+
+        $request['password'] = Hash::make($request['password']);
+        $request['roles'] = 'Siswa';
+
+
+        $user = User::create($request->all());
+        $user->assignRole($request->input('roles'));
+
+        Alert::success('Success Information', 'User created successfully');
+        return redirect()->route('siswa.index');
     }
 
     /**
@@ -55,7 +90,11 @@ class SiswaController extends Controller
      */
     public function edit($id)
     {
-        return view('siswa::edit');
+        $user = User::find($id);
+        $roles = Role::pluck('name', 'name')->all();
+        $userRole = $user->roles->pluck('name', 'name')->all();
+
+        return view('siswa::admin.siswa.edit', compact('user', 'roles', 'userRole'));
     }
 
     /**
@@ -66,7 +105,38 @@ class SiswaController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email,' . $id,
+            'username' => 'required|unique:users,username,' . $id,
+            'telp' => 'required|numeric',
+            'password' => 'same:confirm-password',
+            'foto' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+
+        ]);
+
+        $user = User::find($id);
+
+        $input = $request->all();
+        if (!empty($input['password'])) {
+            $input['password'] = Hash::make($input['password']);
+        } else {
+            $input = Arr::except($input, array('password'));
+        }
+
+        if (!empty($request->foto)) {
+            $imageName = $request->foto->getClientOriginalName();
+            $request->foto->move(public_path('storage/profile-image'), $imageName);
+            $input['foto'] = $imageName;
+            if (File::exists(public_path('storage/profile-image/' . $user->foto))) {
+                File::delete(public_path('storage/profile-image/' . $user->foto));
+            }
+        }
+
+        $user->update($input);
+
+        Alert::success('Success Information', 'User updated successfully');
+        return redirect()->route('siswa.index');
     }
 
     /**
@@ -76,6 +146,10 @@ class SiswaController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $user = User::find($id);
+        $user->delete();
+
+        Alert::success('Success Information', 'User deleted successfully');
+        return redirect()->route('siswa.index');
     }
 }
