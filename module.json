@@ -1,0 +1,13 @@
+{
+    "name": "Siswa",
+    "alias": "siswa",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\Siswa\\Providers\\SiswaServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}

@@ -1,0 +1,32 @@
+{
+    "name": "marwandhiaurrahman/siswa-module",
+    "description": "",
+    "authors": [
+        {
+            "name": "Marwan Dhiaur Rahman",
+            "email": "marwandhiaurrahman@gmail.com"
+        }
+    ],
+    "license": "MIT",
+    "type": "laravel-module",
+    "require": {
+        "davejamesmiller/laravel-breadcrumbs": "^5.3",
+        "jeroennoten/laravel-adminlte": "^3.6",
+        "laravelcollective/html": "^6.2",
+        "laravolt/indonesia": "^0.29.0",
+        "nwidart/laravel-modules": "^8.2",
+        "realrashid/sweet-alert": "^4.0",
+        "spatie/laravel-permission": "^4.2"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {}
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\Siswa\\": ""
+        }
+    }
+}
